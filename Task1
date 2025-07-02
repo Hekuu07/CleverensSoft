@@ -1,0 +1,100 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp1
+{
+    internal class Program
+    {
+        public static string Compress(string text)
+        {
+            List<char> charsSet = text.ToList();
+            StringBuilder stringBuilder = new StringBuilder();
+
+            int sch = 0;
+            int count = 1;
+
+            for (int j = sch + 1; j < charsSet.Count; j++)
+            {
+
+                if (charsSet[sch] == charsSet[j] && j != charsSet.Count - 1) 
+                {
+                    count++;
+                }
+                else
+                {
+                    stringBuilder.Append(charsSet[sch]);
+
+                    if (j == charsSet.Count - 1 && charsSet[j] == charsSet[sch])
+                    {
+                        count++;
+                    }
+
+                    if (count > 1)
+                    {
+
+                        stringBuilder.Append(count);
+
+                    }
+
+                    count = 1;
+
+                    if ((j == charsSet.Count - 1) && (charsSet[j] != charsSet[sch]))
+                    {
+                        stringBuilder.Append(charsSet[j]);
+
+                    }
+                }
+                sch++;
+
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        public static string DeCompress(string text)
+        {
+            List<char> charsSet = text.ToList();
+            StringBuilder stringBuilder = new StringBuilder();
+
+            int naumberInStr = 0;
+            bool result = false;
+
+            for (int i = 0; i < charsSet.Count; i++)
+            {
+                result = int.TryParse(charsSet[i].ToString(), out naumberInStr);
+
+                if (result)
+                {
+                    for (int j = 1; j < naumberInStr; j++)
+                    {
+                        stringBuilder.Append(charsSet[i - 1]);
+                    }
+                }
+                else
+                {
+                    stringBuilder.Append(charsSet[i]);
+                }               
+               
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        static void Main(string[] args)
+        {
+
+            Console.WriteLine(Compress("aaabbcccdde"));
+            Console.WriteLine(Compress("awwweccc"));
+            Console.WriteLine(Compress("aaaweecc"));
+
+            Console.WriteLine(new string('-', 10));
+
+            Console.WriteLine(DeCompress("a3b2c3d2e"));
+            Console.WriteLine(DeCompress("aw3ec3"));
+
+        }
+    }
+}
