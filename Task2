@@ -1,0 +1,110 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ServerTest
+{
+    public static class Server
+    {
+        static int count;
+        static ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
+        public static int GetCount()
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                Console.WriteLine("Сервер №" + Thread.CurrentThread.Name + "#" + " получил в ответ число: ");
+                return count;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+        public static void AddToCount(int value)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Идет запись числа:");
+                Console.Write("Ожидайте");
+
+                for (int i = 0; i < 10; i++)
+                {
+                    Console.Write(".");
+                    Thread.Sleep(500);
+                }
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine();
+                Console.WriteLine();
+                count = value;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+    }
+
+    internal class Program
+    {
+        public static void AddCountNumber()
+        {
+
+            Thread.Sleep(500);
+            Server.AddToCount(400);
+
+        }
+        public static void GetCountNumber()
+        {
+
+            Thread.Sleep(500);
+            Console.WriteLine(Server.GetCount());
+
+        }
+
+        public static void AddThreads(Thread[] arrThreads, List<Thread> threads)
+        {
+            for (int i = 0; i < arrThreads.Length; i++)
+            {
+                arrThreads[i].Name = i.ToString();
+                threads.Add(arrThreads[i]);
+            }
+        }
+
+        public static void StartThreads(List<Thread> threads)
+        {
+            for (int j = 0; j < threads.Count; j++)
+            {
+                threads[j].Start();
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("---- Начало запроса данных у сервера ----");
+            Console.WriteLine();
+
+            List<Thread> threads = new List<Thread>();
+            Thread[] arrThreads = new Thread[]
+            {
+               new Thread(GetCountNumber),
+               new Thread(GetCountNumber),
+               new Thread(AddCountNumber),
+               new Thread(GetCountNumber),
+               new Thread(GetCountNumber),
+               new Thread(GetCountNumber)
+             };
+
+            AddThreads(arrThreads, threads);
+            StartThreads(threads);
+
+        }
+    }
+}
