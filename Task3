@@ -1,0 +1,108 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace LogsFilesStandart
+{
+    
+    class Program
+    {      
+        public static void Main(string[] args)
+        {
+            string[] files = { "E:\\C#\\Test\\Task3\\test\\input.txt", "E:\\C#\\Test\\Task3\\test\\output.txt" }; 
+
+            if (files.Length < 2)
+            {
+                Console.WriteLine("Использование: LogStandardizer <входной файл> <выходной файл>");
+                return;
+            }
+
+            string inputFilePath = files[0];
+            string outputFilePath = files[1];
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(inputFilePath))
+                using (StreamWriter writer = new StreamWriter(outputFilePath))
+                {
+                    string line;
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        string standardizedLine = StandardizeLogLine(line);
+
+                        if (standardizedLine != null)
+                        {
+                            writer.WriteLine(standardizedLine);
+                        }
+                    }
+                }
+                Console.WriteLine("Лог-файл успешно стандартизирован и сохранен в " + outputFilePath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Ошибка: " + ex.Message);
+            }
+        }
+
+        static string StandardizeLogLine(string line)
+        {
+            // Регулярное выражение для формата 1
+            var format1Pattern = new Regex(@"^(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}\.\d{3}) (.+?) Версия программы: '(.+?)'$");
+            // Регулярное выражение для формата 2
+            var format2Pattern = new Regex(@"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{4})\| (.+?)\|.+?\|(.+?)\| (.+)$");
+            // Проверка формата 1
+            if (format1Pattern.IsMatch(line))
+            {
+                var match = format1Pattern.Match(line);
+                DateTime dateTime = DateTime.ParseExact(match.Groups[1].Value, "dd.MM.yyyy HH:mm:ss.fff", null);
+                string logLevel = GetLogLevel(match.Groups[2].Value);
+                string message = match.Groups[3].Value;
+                return $"{dateTime:dd-MM-yyyy}\t{match.Groups[1].Value.Substring(11)}\t{logLevel}\t{message}";
+            }
+            // Проверка формата 2
+            else if (format2Pattern.IsMatch(line))
+            {
+                var match = format2Pattern.Match(line);
+                DateTime dateTime = DateTime.ParseExact(match.Groups[1].Value, "yyyy-MM-dd HH:mm:ss.ffff", null);
+                string logLevel = GetLogLevel(match.Groups[2].Value);
+                string method = match.Groups[3].Value;
+                string message = match.Groups[4].Value;
+                return $"{dateTime:dd-MM-yyyy}\t{match.Groups[1].Value.Substring(11)}\t{logLevel}\t{message}";
+            }
+            // Если формат не распознан, возвращаем null
+            return null;
+        }
+
+        public static string GetLogLevel(string level)
+        {
+            if (level == "INFORMATION")
+            {
+                return "INFO";
+            }
+            else if (level == "WARNING")
+            {
+                return "WARN";
+            }
+            else if (level == "ERROR")
+            {
+                return "ERROR";
+            }
+            else if (level == "DEBUG")
+            {
+                return "DEBUG";
+            }
+            else
+            {
+                return "Unknow";
+            }
+
+        }
+
+    }
+
+}
